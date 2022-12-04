@@ -27,6 +27,8 @@ scale_fill_discrete = scale_fill_viridis_d
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
+## Question 1
+
 ## Question 2
 
 Import data. Create variables `city_state`, `solved` indicator variable. 
@@ -37,10 +39,45 @@ post <- read_csv("https://raw.github.com/washingtonpost/data-homicides/master/ho
   mutate(city_state = paste(city, state, sep =  ", "),
          solved = ifelse(disposition == "Closed by arrest", 1, 0),
          victim_age = as.numeric(victim_age)) %>%
-  filter(city_state != "Tulsa, AL" & (victim_race == "White" | victim_race == "Black")) %>%
+  filter((city_state != "Tulsa, AL" & city_state != "Dallas, TX" & city_state != "Phoenix, AZ" & city_state != "Kansas City, MO") & (victim_race == "White" | victim_race == "Black")) %>%
   select(city_state, everything())
+```
 
-str(post$victim_age)
+Fit logistic regression model using `glm`. `solved` is the outcome and `victim_age`, `victim_sex`, and `victim_race` are predictors. 
+
+Among homicides in Baltimore, MD
+
+```{r}
+fit <-
+  post %>%
+  filter(city_state == "Baltimore, MD") %>%
+  glm(solved ~ victim_age + victim_sex + victim_race, family = binomial (link = "logit"), data = .)
+
+fit %>%
+  broom::tidy(conf.int = TRUE) %>%
+  mutate(OR = exp(estimate), OR_conf_low = exp(conf.low), OR_conf_high = exp(conf.high)) %>%
+  select(term, log_OR = estimate, OR, p.value, OR_conf_low, OR_conf_high) %>%
+  knitr::kable(digits = 2)
+```
+
+Among all cities
+
+```{r}
+all_fit <-
+  post %>%
+  nest(data = uid:solved) %>%
+  mutate(models = map(.x = data, ~glm(solved ~ victim_age + victim_sex + victim_race, family = binomial (link = "logit"), data = .x)),
+         results = map(models, broom::tidy)) %>%
+  select(city_state, results) %>%
+  unnest(results)
+
+```
+
+
+
+```{r}
+all_fit %>%
+  ggplot(aes(x = ))
 ```
 
 
