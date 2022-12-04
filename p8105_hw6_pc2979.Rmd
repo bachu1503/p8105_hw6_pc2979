@@ -59,7 +59,7 @@ fit %>%
          OR_conf_low = exp(conf.low), 
          OR_conf_high = exp(conf.high)) %>%
   select(term, log_OR = estimate, OR, OR_conf_low, OR_conf_high) %>%
-  knitr::kable(digits = 2)
+  knitr::kable(digits = 3)
 ```
 
 
@@ -100,10 +100,37 @@ all_nest %>%
         legend.position = "none")
 ```
 
+From the plot, on average, the adjusted ORs for most cities are below 1, suggesting that male victims have a smaller odds of having a solved homicide case compared to females. Additionally, we see the confidence interval for many cities contains the null value of 1, indicating results are not significant. 
 
 ## Question 3
 
 ```{r}
-
+weight <-
+  read.csv("data/birthweight.csv") %>%
+  mutate(id = row_number(),
+         babysex = as.factor(babysex),
+         frace = as.factor(frace),
+         mrace = as.factor(mrace),
+         malform = as.factor(malform))
 ```
+
+```{r}
+str(weight)
+sapply(weight, function(x) sum(is.na(x)))
+```
+
+No missing values in dataset, `id` variable created, `babysex`, `frace`, `mrace`, and `malform` converted to factor variables.
+
+```{r}
+weight %>%
+  ggplot(aes(x = bwt)) + 
+  geom_histogram(binwidth = 30) +
+  labs(
+    title = "Distribution of Birthweight",
+    x = "Birthweight (g)",
+    y = "Count"
+  )
+```
+
+`bwt` is relatively normally distributed.
 
